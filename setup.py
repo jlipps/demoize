@@ -12,5 +12,6 @@ setup(
     description='A webserver that shows your code as it is executed',
     long_description=open('README.txt').read(),
     install_requires=[
+        "Flask >= 0.9",
     ],
 )
