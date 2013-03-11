@@ -13,5 +13,7 @@ setup(
     long_description=open('README.txt').read(),
     install_requires=[
         "Flask >= 0.9",
+        "pygments >= 1.6",
+        "selenium >= 2.31",
     ],
 )
