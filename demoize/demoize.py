@@ -61,9 +61,9 @@ class Demo(object):
         self.driver.execute_script(script)
         self.cur_line = line
 
-    def next_line(self):
+    def next_line(self, skip=1):
         try:
-            self.goto_line(self.cur_line + 1)
+            self.goto_line(self.cur_line + skip)
         except NoSuchElementException:
             self.goto_line(1)
 
