@@ -28,7 +28,7 @@ class DemoServer(object):
             codelines = code.split("\n")
             keeplines = []
             for l in codelines:
-                if re.match(striplines_regex, l) is None:
+                if re.search(striplines_regex, l) is None:
                     keeplines.append(l)
             code = "\n".join(keeplines)
         result = highlight(code, lexer, formatter)
