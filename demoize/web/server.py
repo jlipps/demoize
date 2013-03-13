@@ -26,7 +26,7 @@ def index():
 def run_app(port=5000, **kwargs):
     global PARAMS
     PARAMS.update(kwargs)
-    app.run()
+    app.run(port=port)
 
 
 if __name__ == '__main__':
