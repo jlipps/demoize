@@ -2,10 +2,14 @@ from distutils.core import setup
 
 setup(
     name='Demoize',
-    version='0.1.0',
+    version='0.1.1',
     author='Jonathan Lipps',
     author_email='jlipps@gmail.com',
-    packages=['demoize'],
+    packages=['demoize', 'demoize.web'],
+    package_data={'demoize.web': ['static/*',
+                                  'templates/*']},
+    #data_files=[('web/static', ['demoize/web/static/*']),
+                #('web/templates', ['demoize/web/templates/*'])],
     #scripts=['bin/stowe-towels.py','bin/wash-towels.py'],
     url='http://pypi.python.org/pypi/Demoize/',
     license='LICENSE.txt',
