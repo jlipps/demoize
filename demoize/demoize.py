@@ -1,5 +1,4 @@
 import re
-import os.path
 from web.server import run_app
 from selenium import webdriver
 from pygments import highlight
@@ -59,6 +58,7 @@ class Demo(object):
         script = script.replace(" ", "")
         script = script.replace("\n", "")
         self.driver.execute_script(script)
+        self.driver.execute_script("demoize.scrollToCenterOnLine(%s)" % line)
         self.cur_line = line
 
     def next_line(self, skip=1):
