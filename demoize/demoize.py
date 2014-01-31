@@ -1,4 +1,6 @@
-import re
+import ast
+import copy
+from astor import codegen
 from web.server import run_app
 from selenium import webdriver
 from pygments import highlight
@@ -9,27 +11,19 @@ from selenium.common.exceptions import NoSuchElementException
 
 class DemoServer(object):
 
-    def start_server(self, code_file, language=None, port=5000,
-                     striplines_regex=None, **params):
+    def start_server(self, script_file, language=None, port=5000, **params):
         lexer_opts = {
             'stripall': True
         }
         if language:
             lexer = get_lexer_by_name(language, **lexer_opts)
         else:
-            lexer = get_lexer_for_filename(code_file, **lexer_opts)
+            lexer = get_lexer_for_filename(script_file, **lexer_opts)
         formatter = HtmlFormatter(linenos=True, linespans="line",
                                   anchorlinenos="aline")
         code = ''
-        with open(code_file, 'r') as f:
+        with open(script_file, 'r') as f:
             code = f.read()
-        if striplines_regex is not None:
-            codelines = code.split("\n")
-            keeplines = []
-            for l in codelines:
-                if re.search(striplines_regex, l) is None:
-                    keeplines.append(l)
-            code = "\n".join(keeplines)
         result = highlight(code, lexer, formatter)
         params['code'] = result
         run_app(port=port, **params)
@@ -37,7 +31,8 @@ class DemoServer(object):
 
 class Demo(object):
 
-    def __init__(self, port=5000, browser="chrome"):
+    def __init__(self, script_file, port=5000, browser="chrome"):
+        self.script_file = script_file
         print "Starting demo"
         self.url = "http://localhost:%s" % port
         if browser == "chrome":
@@ -72,8 +67,67 @@ class Demo(object):
         except NoSuchElementException:
             self.goto_line(1)
 
-    def stop_demo(self):
+    def run(self):
+        try:
+            with open(self.script_file) as f:
+                script_lines = [line for line in f]
+                script_py = "".join(script_lines)
+            tree = ast.parse(script_py, filename=self.script_file)
+            new_tree = DemoTransformer().visit(tree)
+            print ast.dump(new_tree)
+            new_tree = ast.fix_missing_locations(new_tree)
+            print codegen.to_source(new_tree)
+            code_obj = compile(new_tree, self.script_file, 'exec')
+            glb = {'DEMOIZE_OBJ': self}
+            exec(code_obj, glb)
+        except:
+            print "Error parsing or running demo code"
         self.driver.quit()
+
+
+class DemoTransformer(ast.NodeTransformer):
+
+    def generic_visit(self, node, parent_nodes=None):
+        if parent_nodes is None:
+            parent_nodes = []
+        else:
+            parent_nodes = copy.copy(parent_nodes)
+        avoid_classes = (ast.FunctionDef, ast.ClassDef, ast.If, ast.While,
+                         ast.With, ast.TryExcept, ast.TryFinally,
+                         ast.ExceptHandler, ast.IfExp, ast.For, ast.Global)
+        class_assign = (node.__class__ == ast.Assign and
+                        len(parent_nodes) > 0 and
+                        parent_nodes[-1].__class__ == ast.ClassDef)
+        if (hasattr(node, 'lineno') and
+            issubclass(node.__class__, ast.stmt) and
+            node.__class__ not in avoid_classes and
+            not class_assign):
+            extra_stmt = 'DEMOIZE_OBJ.goto_line(line=%s)' % node.lineno
+            extra_node = ast.parse(extra_stmt)
+            return (extra_node.body[0], node)
+        else:
+            parent_nodes.append(node)
+            for field, old_value in ast.iter_fields(node):
+                old_value = getattr(node, field, None)
+                if isinstance(old_value, list):
+                    new_values = []
+                    for value in old_value:
+                        if isinstance(value, ast.AST):
+                            value = self.generic_visit(value, parent_nodes)
+                            if value is None:
+                                continue
+                            elif not isinstance(value, ast.AST):
+                                new_values.extend(value)
+                                continue
+                        new_values.append(value)
+                    old_value[:] = new_values
+                elif isinstance(old_value, ast.AST):
+                    new_node = self.generic_visit(old_value, parent_nodes)
+                    if new_node is None:
+                        delattr(node, field)
+                    else:
+                        setattr(node, field, new_node)
+            return node
 
 
 if __name__ == "__main__":
