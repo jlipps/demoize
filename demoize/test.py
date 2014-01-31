@@ -9,5 +9,5 @@ if __name__ == "__main__":
         d = DemoServer()
         d.start_server(filepath, title="My Code", heading="My Code!")
     elif sys.argv[1] == "demo":
-        d = Demo(filepath)
+        d = Demo(filepath, extra_globals={'MY_CONST': 'lol'})
         d.run()

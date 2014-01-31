@@ -31,7 +31,11 @@ class DemoServer(object):
 
 class Demo(object):
 
-    def __init__(self, script_file, port=5000, browser="chrome"):
+    def __init__(self, script_file, port=5000, browser="chrome",
+                 extra_globals=None):
+        if extra_globals is None:
+            extra_globals = {}
+        self.extra_globals = extra_globals
         self.script_file = script_file
         print "Starting demo"
         self.url = "http://localhost:%s" % port
@@ -78,11 +82,13 @@ class Demo(object):
             new_tree = ast.fix_missing_locations(new_tree)
             print codegen.to_source(new_tree)
             code_obj = compile(new_tree, self.script_file, 'exec')
-            glb = {'DEMOIZE_OBJ': self}
-            exec(code_obj, glb)
-        except:
+            self.extra_globals.update({'DEMOIZE_OBJ': self})
+            exec(code_obj, self.extra_globals)
+        except Exception:
             print "Error parsing or running demo code"
-        self.driver.quit()
+            raise
+        finally:
+            self.driver.quit()
 
 
 class DemoTransformer(ast.NodeTransformer):

@@ -34,6 +34,7 @@ def run_code():
     obj.print_things()
     for x in [1, 2, 3]:
         print x + 5
+    print "MY_CONST is %s" % MY_CONST
 
 
 run_code()
