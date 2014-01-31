@@ -37,10 +37,15 @@ class DemoServer(object):
 
 class Demo(object):
 
-    def __init__(self, port=5000):
+    def __init__(self, port=5000, browser="chrome"):
         print "Starting demo"
         self.url = "http://localhost:%s" % port
-        self.driver = webdriver.Chrome()
+        if browser == "chrome":
+            self.driver = webdriver.Chrome()
+        elif browser == "safari":
+            self.driver = webdriver.Safari()
+        else:
+            self.driver = webdriver.Firefox()
         self.driver.get(self.url)
         self.cur_line = 0
 

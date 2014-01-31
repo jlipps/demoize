@@ -8,7 +8,9 @@
     <script type="text/javascript" src="{{ url_for('static', filename='demoize.js') }}"></script>
   </head>
   <body>
-    <h1>{{ heading }}</h1>
+    {% if heading %}
+      <h1>{{ heading }}</h1>
+    {% endif %}
     {{ code|safe }}
   </body>
 </html>
