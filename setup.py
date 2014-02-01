@@ -2,7 +2,7 @@ from distutils.core import setup
 
 setup(
     name='Demoize',
-    version='1.1.0',
+    version='1.1.1',
     author='Jonathan Lipps',
     author_email='jlipps@gmail.com',
     packages=['demoize', 'demoize.web'],

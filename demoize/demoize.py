@@ -12,6 +12,7 @@ from selenium.common.exceptions import NoSuchElementException
 class DemoServer(object):
 
     def start_server(self, script_file, language=None, port=5000, **params):
+        print "Starting server with code file at %s" % script_file
         lexer_opts = {
             'stripall': True
         }
@@ -78,9 +79,7 @@ class Demo(object):
                 script_py = "".join(script_lines)
             tree = ast.parse(script_py, filename=self.script_file)
             new_tree = DemoTransformer().visit(tree)
-            print ast.dump(new_tree)
             new_tree = ast.fix_missing_locations(new_tree)
-            print codegen.to_source(new_tree)
             code_obj = compile(new_tree, self.script_file, 'exec')
             self.extra_globals.update({'DEMOIZE_OBJ': self})
             exec(code_obj, self.extra_globals)
