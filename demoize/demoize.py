@@ -33,7 +33,9 @@ class DemoServer(object):
 class Demo(object):
 
     def __init__(self, script_file, port=5000, browser="chrome",
-                 extra_globals=None):
+                 extra_globals=None, coords=None):
+        if coords is None:
+            coords = {}
         if extra_globals is None:
             extra_globals = {}
         self.extra_globals = extra_globals
@@ -46,6 +48,10 @@ class Demo(object):
             self.driver = webdriver.Safari()
         else:
             self.driver = webdriver.Firefox()
+        if 'w' in coords and 'h' in coords:
+            self.driver.set_window_size(coords['w'], coords['h'])
+        if 'x' in coords and 'y' in coords:
+            self.driver.set_window_position(coords['x'], coords['y'])
         self.driver.get(self.url)
         self.cur_line = 0
 
